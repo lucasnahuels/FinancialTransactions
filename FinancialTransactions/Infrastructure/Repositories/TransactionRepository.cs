@@ -2,16 +2,22 @@
 using FinancialTransactions.Models;
 using EFCore.BulkExtensions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using System.Data;
+using Microsoft.Extensions.Configuration;
 
 namespace FinancialTransactions.Infrastructure.Repositories
 {
     public class TransactionRepository : ITransactionRepository
     {
         private readonly TransactionContext _dbContext;
+        private readonly IConfiguration _configuration;
 
-        public TransactionRepository(TransactionContext dbContext)
+        public TransactionRepository(TransactionContext dbContext, IConfiguration configuration)
         {
             _dbContext = dbContext;
+            _configuration = configuration;
         }
 
         public IEnumerable<Transaction> GetTransactions()
@@ -21,54 +27,58 @@ namespace FinancialTransactions.Infrastructure.Repositories
 
         public void SaveTransactions(IEnumerable<Transaction> transactions)
         {
-            //_dbContext.Transactions.AddRange(transactions);
-            //_dbContext.SaveChanges();
-            var bulkConfig = new BulkConfig
+            using (SqlConnection connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
             {
-                PreserveInsertOrder = true,
-                SetOutputIdentity = true
-            };
+                connection.Open();
 
-            _dbContext.Database.SetCommandTimeout(1800);
-            int batches = transactions.Count() / 100000;
-            for (int i = 0; i < batches; i++)
-            {
-                _dbContext.BulkInsert(transactions.Skip(i * 100000).Take(100000), bulkConfig);
-                _dbContext.SaveChanges();
+                using (SqlBulkCopy bulkCopy = new SqlBulkCopy(connection))
+                {
+                    bulkCopy.DestinationTableName = "Transactions";
+
+                    var transactionsDataTable = new DataTable();
+                    transactionsDataTable.Columns.Add("TransactionId", typeof(Guid));
+                    transactionsDataTable.Columns.Add("UserId", typeof(Guid));
+                    transactionsDataTable.Columns.Add("Date", typeof(DateTime));
+                    transactionsDataTable.Columns.Add("Amount", typeof(decimal));
+                    transactionsDataTable.Columns.Add("Category", typeof(string));
+                    transactionsDataTable.Columns.Add("Description", typeof(string));
+                    transactionsDataTable.Columns.Add("Merchant", typeof(string));
+
+                    int batchSize = 50000;
+                    int recordCount = 0;
+                    DataTable batchDataTable = transactionsDataTable.Clone();
+
+                    foreach (var transaction in transactions)
+                    {
+                        transactionsDataTable.Rows.Add(
+                            transaction.TransactionId,
+                            transaction.UserId,
+                            transaction.Date,
+                            transaction.Amount,
+                            transaction.Category,
+                            transaction.Description,
+                            transaction.Merchant);
+                    }
+
+                    foreach (DataRow row in transactionsDataTable.Rows)
+                    {
+                        batchDataTable.ImportRow(row);
+                        recordCount++;
+
+                        if (recordCount >= batchSize)
+                        {
+                            bulkCopy.WriteToServer(batchDataTable);
+                            batchDataTable.Clear();
+                            recordCount = 0;
+                        }
+                    }
+
+                    if (recordCount > 0)
+                    {
+                        bulkCopy.WriteToServer(batchDataTable);
+                    }
+                }
             }
-
-            //using (SqlConnection connection = new SqlConnection("Data Source=DESKTOP-KH9LQO5\\SQLEXPRESS;Initial Catalog=FinancialTransactions;Integrated Security=True;Pooling=False;Encrypt=True;Trust Server Certificate=True"))
-            //{
-            //    connection.Open();
-
-            //    using (SqlBulkCopy bulkCopy = new SqlBulkCopy(connection))
-            //    {
-            //        bulkCopy.DestinationTableName = "Transactions";
-
-            //        var transactionsDataTable = new DataTable();
-            //        transactionsDataTable.Columns.Add("TransactionId", typeof(Guid));
-            //        transactionsDataTable.Columns.Add("UserId", typeof(Guid));
-            //        transactionsDataTable.Columns.Add("Date", typeof(DateTime));
-            //        transactionsDataTable.Columns.Add("Amount", typeof(decimal));
-            //        transactionsDataTable.Columns.Add("Category", typeof(string));
-            //        transactionsDataTable.Columns.Add("Description", typeof(string));
-            //        transactionsDataTable.Columns.Add("Merchant", typeof(string));
-
-            //        foreach (var transaction in transactions)
-            //        {
-            //            transactionsDataTable.Rows.Add(
-            //                transaction.TransactionId,
-            //                transaction.UserId,
-            //                transaction.Date,
-            //                transaction.Amount,
-            //                transaction.Category,
-            //                transaction.Description,
-            //                transaction.Merchant);
-            //        }
-
-            //        bulkCopy.WriteToServer(transactionsDataTable);
-            //    }
-            //}
         }
     }
 }

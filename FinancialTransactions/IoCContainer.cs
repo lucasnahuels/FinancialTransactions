@@ -4,6 +4,7 @@ using FinancialTransactions.Services.Interfaces;
 using FinancialTransactions.Services;
 using Microsoft.Extensions.DependencyInjection;
 using FinancialTransactions.Infrastructure.Repositories.Interfaces;
+using Microsoft.Extensions.Configuration;
 
 namespace FinancialTransactions
 {
@@ -22,7 +23,8 @@ namespace FinancialTransactions
             services.AddTransient<ITransactionRepository>(provider =>
             {
                 var dbContext = provider.GetRequiredService<TransactionContext>();
-                return new TransactionRepository(dbContext);
+                var config = provider.GetRequiredService<IConfiguration>();
+                return new TransactionRepository(dbContext, config);
             });
 
 
