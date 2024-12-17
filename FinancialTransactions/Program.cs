@@ -17,9 +17,9 @@ var serviceProvider = IoCContainer.CreateServiceProvider();
 
 // Create services
 //var dbContext = serviceProvider.GetService<TransactionContext>();
-var transactionRepository = serviceProvider.GetService<ITransactionRepository>();
-var transactionService = serviceProvider.GetService<ITransactionService>();
-var analysisService = serviceProvider.GetService<IAnalysisService>();
+var transactionRepository = serviceProvider.GetRequiredService<ITransactionRepository>();
+var transactionService = serviceProvider.GetRequiredService<ITransactionService>();
+var analysisService = serviceProvider.GetRequiredService<IAnalysisService>();
 
 // Load transactions from CSV file
 var transactions = LoadTransactionsFromCsv("E:\\Users\\Lucas\\Downloads\\Transactions\\transactions_10_thousand.csv");

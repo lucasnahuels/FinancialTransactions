@@ -31,19 +31,19 @@ namespace FinancialTransactions
 
             services.AddTransient<ITransactionRepository>(provider =>
             {
-                var dbContext = provider.GetService<TransactionContext>();
+                var dbContext = provider.GetRequiredService<TransactionContext>();
                 return new TransactionRepository(dbContext);
             });
 
             // Register services
             services.AddTransient<ITransactionService>(provider =>
             {
-                var transactionRepository = provider.GetService<TransactionRepository>();
+                var transactionRepository = provider.GetRequiredService<ITransactionRepository>();
                 return new TransactionService(transactionRepository);
             });
             services.AddTransient<IAnalysisService>(provider =>
             {
-                var transactionService = provider.GetService<TransactionService>();
+                var transactionService = provider.GetRequiredService<ITransactionService>();
                 return new AnalysisService(transactionService);
             });
             
