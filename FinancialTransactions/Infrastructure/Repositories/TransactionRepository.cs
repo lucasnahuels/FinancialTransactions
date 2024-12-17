@@ -32,35 +32,15 @@ namespace FinancialTransactions.Infrastructure.Repositories
                 {
                     try
                     {
-                        using (SqlBulkCopy bulkCopy = new SqlBulkCopy(connection, SqlBulkCopyOptions.TableLock, sqlTransaction))
+                        using (SqlBulkCopy bulkCopy = new SqlBulkCopy(connection, SqlBulkCopyOptions.TableLock | SqlBulkCopyOptions.KeepNulls, sqlTransaction))
                         {
                             bulkCopy.DestinationTableName = "Transactions";
 
-                            var transactionsDataTable = new DataTable();
-                            transactionsDataTable.Columns.Add("TransactionId", typeof(Guid));
-                            transactionsDataTable.Columns.Add("UserId", typeof(Guid));
-                            transactionsDataTable.Columns.Add("Date", typeof(DateTime));
-                            transactionsDataTable.Columns.Add("Amount", typeof(decimal));
-                            transactionsDataTable.Columns.Add("Category", typeof(string));
-                            transactionsDataTable.Columns.Add("Description", typeof(string));
-                            transactionsDataTable.Columns.Add("Merchant", typeof(string));
+                            DataTable transactionsDataTable = GetDataTable(transactions);
 
-                            int batchSize = 100000;
-                            int recordCount = 0;
                             DataTable batchDataTable = transactionsDataTable.Clone();
-
-                            foreach (var transaction in transactions)
-                            {
-                                transactionsDataTable.Rows.Add(
-                                    transaction.TransactionId,
-                                    transaction.UserId,
-                                    transaction.Date,
-                                    transaction.Amount,
-                                    transaction.Category,
-                                    transaction.Description,
-                                    transaction.Merchant);
-                            }
-
+                            int batchSize = 200000;
+                            int recordCount = 0;
                             foreach (DataRow row in transactionsDataTable.Rows)
                             {
                                 batchDataTable.ImportRow(row);
@@ -88,6 +68,32 @@ namespace FinancialTransactions.Infrastructure.Repositories
                     }
                 }
             }
+        }
+
+        private static DataTable GetDataTable(IEnumerable<Transaction> transactions)
+        {
+            var transactionsDataTable = new DataTable();
+            transactionsDataTable.Columns.Add("TransactionId", typeof(Guid));
+            transactionsDataTable.Columns.Add("UserId", typeof(Guid));
+            transactionsDataTable.Columns.Add("Date", typeof(DateTime));
+            transactionsDataTable.Columns.Add("Amount", typeof(decimal));
+            transactionsDataTable.Columns.Add("Category", typeof(string));
+            transactionsDataTable.Columns.Add("Description", typeof(string));
+            transactionsDataTable.Columns.Add("Merchant", typeof(string));
+
+            foreach (var transaction in transactions)
+            {
+                transactionsDataTable.Rows.Add(
+                    transaction.TransactionId,
+                    transaction.UserId,
+                    transaction.Date,
+                    transaction.Amount,
+                    transaction.Category,
+                    transaction.Description,
+                    transaction.Merchant);
+            }
+
+            return transactionsDataTable;
         }
     }
 }

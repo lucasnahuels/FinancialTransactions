@@ -13,7 +13,7 @@ var transactionService = serviceProvider.GetRequiredService<ITransactionService>
 var analysisService = serviceProvider.GetRequiredService<IAnalysisService>();
 
 // Load transactions from CSV file
-var transactions = CsvHelper.LoadTransactionsFromCsv("E:\\Users\\Lucas\\Downloads\\Transactions\\transactions_2_million.csv");
+var transactions = CsvHelper.LoadTransactionsFromCsv("your_path_to_transactions_2_million.csv");
 
 // Save transactions to database
 transactionService.SaveTransactions(transactions);
