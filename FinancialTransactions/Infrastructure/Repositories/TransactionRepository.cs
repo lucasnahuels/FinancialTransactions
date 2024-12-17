@@ -32,7 +32,7 @@ namespace FinancialTransactions.Infrastructure.Repositories
                 {
                     try
                     {
-                        using (SqlBulkCopy bulkCopy = new SqlBulkCopy(connection, SqlBulkCopyOptions.TableLock | SqlBulkCopyOptions.KeepNulls, sqlTransaction))
+                        using (SqlBulkCopy bulkCopy = new SqlBulkCopy(connection, SqlBulkCopyOptions.TableLock, sqlTransaction))
                         {
                             bulkCopy.DestinationTableName = "Transactions";
 
