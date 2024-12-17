@@ -25,16 +25,18 @@ namespace FinancialTransactions.Infrastructure.Repositories
 
         public void SaveTransactions(IEnumerable<Transaction> transactions)
         {
+            var tableName = "Transactions";
             using (SqlConnection connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
             {
                 connection.Open();
+                DisableConstraints(connection, tableName);
                 using (SqlTransaction sqlTransaction = connection.BeginTransaction())
                 {
                     try
                     {
                         using (SqlBulkCopy bulkCopy = new SqlBulkCopy(connection, SqlBulkCopyOptions.TableLock, sqlTransaction))
                         {
-                            bulkCopy.DestinationTableName = "Transactions";
+                            bulkCopy.DestinationTableName = tableName;
 
                             DataTable transactionsDataTable = GetDataTable(transactions);
 
@@ -67,6 +69,23 @@ namespace FinancialTransactions.Infrastructure.Repositories
                         throw;
                     }
                 }
+                EnableConstraints(connection, tableName);
+            }
+        }
+
+        private static void EnableConstraints(SqlConnection connection, string tableName)
+        {
+            using (SqlCommand command = new SqlCommand("ALTER TABLE " + tableName + " CHECK CONSTRAINT ALL", connection))
+            {
+                command.ExecuteNonQuery();
+            }
+        }
+
+        private static void DisableConstraints(SqlConnection connection, string tableName)
+        {
+            using (SqlCommand command = new SqlCommand("ALTER TABLE " + tableName + " NOCHECK CONSTRAINT ALL", connection))
+            {
+                command.ExecuteNonQuery();
             }
         }
 
