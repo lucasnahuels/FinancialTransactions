@@ -1,6 +1,6 @@
 ﻿using FinancialTransactions.Models;
 
-namespace FinancialTransactions.Repositories.Interfaces
+namespace FinancialTransactions.Infrastructure.Repositories.Interfaces
 {
     public interface ITransactionRepository
     {

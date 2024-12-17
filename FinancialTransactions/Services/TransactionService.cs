@@ -1,5 +1,5 @@
-﻿using FinancialTransactions.Models;
-using FinancialTransactions.Repositories.Interfaces;
+﻿using FinancialTransactions.Infrastructure.Repositories.Interfaces;
+using FinancialTransactions.Models;
 using FinancialTransactions.Services.Interfaces;
 
 namespace FinancialTransactions.Services

@@ -1,8 +1,8 @@
-﻿using FinancialTransactions.Models;
-using FinancialTransactions.Repositories.Interfaces;
-using Microsoft.EntityFrameworkCore;
+﻿using FinancialTransactions.Infrastructure.Repositories.Interfaces;
+using FinancialTransactions.Models;
+using FinancialTransactions.Infrastructure.Repositories;
 
-namespace FinancialTransactions.Repositories
+namespace FinancialTransactions.Infrastructure.Repositories
 {
     public class TransactionRepository : ITransactionRepository
     {
