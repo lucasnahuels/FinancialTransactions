@@ -19,6 +19,14 @@ namespace FinancialTransactions
             // Register DbContext
             services.AddDbContext<TransactionContext>();
 
+            // Register Config
+            services.AddSingleton<IConfiguration>(provider =>
+            {
+                var builder = new ConfigurationBuilder();
+                builder.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                return builder.Build();
+            });
+
             // Register repositories
             services.AddTransient<ITransactionRepository>(provider =>
             {
