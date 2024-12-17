@@ -19,9 +19,9 @@ var transactions = CsvHelper.LoadTransactionsFromCsv("E:\\Users\\Lucas\\Download
 transactionService.SaveTransactions(transactions);
 
 // Perform analysis
-var userSummaries = analysisService.GetUserSummaries();
-var topCategories = analysisService.GetTopCategories();
-var highestSpender = analysisService.GetHighestSpender();
+var userSummaries = analysisService.GetUserSummaries(transactions);
+var topCategories = analysisService.GetTopCategories(transactions);
+var highestSpender = analysisService.GetHighestSpender(transactions);
 
 // Generate JSON report
 var report = new
