@@ -15,6 +15,7 @@ namespace FinancialTransactions.Services
         public UserSummary[] GetUserSummaries(IEnumerable<Transaction> transactions)
         {
             var userSummaries = transactions
+                .AsParallel()
                 .GroupBy(t => t.UserId)
                 .Select(g => new UserSummary
                 {
@@ -29,6 +30,7 @@ namespace FinancialTransactions.Services
         public TopCategory[] GetTopCategories(IEnumerable<Transaction> transactions)
         {
             var topCategories = transactions
+                .AsParallel()
                 .GroupBy(t => t.Category)
                 .OrderByDescending(g => g.Count())
                 .Take(3)
@@ -44,15 +46,16 @@ namespace FinancialTransactions.Services
         public HighestSpender GetHighestSpender(IEnumerable<Transaction> transactions)
         {
             var highestSpender = transactions
-            .Where(t => t.Amount < 0)
-            .GroupBy(t => t.UserId)
-            .Select(g => new HighestSpender
-            {
-                UserId = g.Key,
-                TotalExpense = g.Sum(t => t.Amount)
-            })
-            .OrderByDescending(g => g.TotalExpense)
-            .FirstOrDefault();
+                .AsParallel()
+                .Where(t => t.Amount < 0)
+                .GroupBy(t => t.UserId)
+                .Select(g => new HighestSpender
+                {
+                    UserId = g.Key,
+                    TotalExpense = g.Sum(t => t.Amount)
+                })
+                .OrderByDescending(g => g.TotalExpense)
+                .FirstOrDefault();
             return highestSpender;
         }
     }
