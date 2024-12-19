@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Formatting = Newtonsoft.Json.Formatting;
 using FinancialTransactions.Helpers;
+using System.Diagnostics;
 
 // Create a service provider
 var serviceProvider = IoCContainer.CreateServiceProvider();
@@ -11,6 +12,8 @@ var serviceProvider = IoCContainer.CreateServiceProvider();
 // Create services
 var transactionService = serviceProvider.GetRequiredService<ITransactionService>();
 var analysisService = serviceProvider.GetRequiredService<IAnalysisService>();
+
+var stopwatch = Stopwatch.StartNew();
 
 // Load transactions from CSV file
 var transactions = CsvHelper.LoadTransactionsFromCsv("your_path_to_transactions_2_million.csv");
@@ -44,3 +47,6 @@ var jsonReport = JsonConvert.SerializeObject(report, Formatting.Indented);
 File.WriteAllText("E:/report.json", jsonReport);
 
 Console.WriteLine("\nReport generated successfully!");
+
+stopwatch.Stop();
+Console.WriteLine($"\nProcess took {stopwatch.Elapsed.TotalSeconds} seconds");
