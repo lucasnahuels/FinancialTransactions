@@ -4,17 +4,17 @@ namespace FinancialTransactions.Helpers
 {
     public static class CsvHelper
     {
-
-        public static IEnumerable<Transaction> LoadTransactionsFromCsv(string filePath)
+        public static async Task<IEnumerable<Transaction>> LoadTransactionsFromCsv(string filePath)
         {
+            var transactions = new List<Transaction>();
             using (var reader = new StreamReader(filePath))
             {
-                reader.ReadLine(); // Skip header row
+                await reader.ReadLineAsync(); // Skip header row
                 while (!reader.EndOfStream)
                 {
-                    var line = reader.ReadLine();
+                    var line = await reader.ReadLineAsync();
                     var values = line.Split(',');
-                    yield return new Transaction
+                    transactions.Add(new Transaction
                     {
                         TransactionId = Guid.Parse(values[0]),
                         UserId = Guid.Parse(values[1]),
@@ -23,9 +23,10 @@ namespace FinancialTransactions.Helpers
                         Category = values[4],
                         Description = values[5],
                         Merchant = values[6]
-                    };
+                    });
                 }
             }
+            return transactions;
         }
     }
 }

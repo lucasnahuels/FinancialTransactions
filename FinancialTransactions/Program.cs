@@ -13,15 +13,21 @@ var transactionService = serviceProvider.GetRequiredService<ITransactionService>
 var analysisService = serviceProvider.GetRequiredService<IAnalysisService>();
 
 // Load transactions from CSV file
-var transactions = CsvHelper.LoadTransactionsFromCsv("your_path_to_transactions_2_million.csv");
+var transactions = await CsvHelper.LoadTransactionsFromCsv("your_path_to_transactions_2_million.csv");
 
 // Save transactions to database
-transactionService.SaveTransactions(transactions);
+await transactionService.SaveTransactions(transactions);
 
 // Perform analysis
-var userSummaries = analysisService.GetUserSummaries(transactions);
-var topCategories = analysisService.GetTopCategories(transactions);
-var highestSpender = analysisService.GetHighestSpender(transactions);
+var userSummariesTask = Task.Run(() => analysisService.GetUserSummaries(transactions));
+var topCategoriesTask = Task.Run(() => analysisService.GetTopCategories(transactions));
+var highestSpenderTask = Task.Run(() => analysisService.GetHighestSpender(transactions));
+
+await Task.WhenAll(userSummariesTask, topCategoriesTask, highestSpenderTask);
+
+var userSummaries = userSummariesTask.Result;
+var topCategories = topCategoriesTask.Result;
+var highestSpender = highestSpenderTask.Result;
 
 // Generate JSON report
 var report = new

@@ -13,14 +13,8 @@ namespace FinancialTransactions.Services
             _transactionRepository = transactionRepository;
         }
 
-        public IEnumerable<Transaction> GetTransactions()
-        {
-            return _transactionRepository.GetTransactions();
-        }
+        public IEnumerable<Transaction> GetTransactions() => _transactionRepository.GetTransactions();
 
-        public void SaveTransactions(IEnumerable<Transaction> transactions)
-        {
-            _transactionRepository.SaveTransactions(transactions);
-        }
+        public async Task SaveTransactions(IEnumerable<Transaction> transactions) => await _transactionRepository.SaveTransactions(transactions);
     }
 }

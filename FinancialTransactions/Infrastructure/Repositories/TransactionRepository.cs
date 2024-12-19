@@ -23,9 +23,9 @@ namespace FinancialTransactions.Infrastructure.Repositories
             return _dbContext.Transactions.ToList();
         }
 
-        public void SaveTransactions(IEnumerable<Transaction> transactions)
+        public async Task SaveTransactions(IEnumerable<Transaction> transactions)
         {
-            var tableName = "Transactions";
+            var tableName = _configuration.GetSection("TableName").Value;
             using (SqlConnection connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
             {
                 connection.Open();
@@ -36,40 +36,45 @@ namespace FinancialTransactions.Infrastructure.Repositories
                     {
                         using (SqlBulkCopy bulkCopy = new SqlBulkCopy(connection, SqlBulkCopyOptions.TableLock, sqlTransaction))
                         {
-                            bulkCopy.DestinationTableName = tableName;
-
-                            DataTable transactionsDataTable = GetDataTable(transactions);
-
-                            DataTable batchDataTable = transactionsDataTable.Clone();
-                            int batchSize = 200000;
-                            int recordCount = 0;
-                            foreach (DataRow row in transactionsDataTable.Rows)
-                            {
-                                batchDataTable.ImportRow(row);
-                                recordCount++;
-
-                                if (recordCount >= batchSize)
-                                {
-                                    bulkCopy.WriteToServer(batchDataTable);
-                                    batchDataTable.Clear();
-                                    recordCount = 0;
-                                }
-                            }
-
-                            if (recordCount > 0)
-                            {
-                                bulkCopy.WriteToServer(batchDataTable);
-                            }
+                            await InsertData(transactions, tableName, bulkCopy);
                         }
                         sqlTransaction.Commit();
                     }
-                    catch (Exception ex)
+                    catch 
                     {
                         sqlTransaction.Rollback();
                         throw;
                     }
                 }
                 EnableConstraints(connection, tableName);
+            }
+        }
+
+        private async static Task InsertData(IEnumerable<Transaction> transactions, string tableName, SqlBulkCopy bulkCopy)
+        {
+            bulkCopy.DestinationTableName = tableName;
+
+            DataTable transactionsDataTable = GetDataTable(transactions);
+
+            DataTable batchDataTable = transactionsDataTable.Clone();
+            int batchSize = 200000;
+            int recordCount = 0;
+            foreach (DataRow row in transactionsDataTable.Rows)
+            {
+                batchDataTable.ImportRow(row);
+                recordCount++;
+
+                if (recordCount >= batchSize)
+                {
+                    await bulkCopy.WriteToServerAsync(batchDataTable);
+                    batchDataTable.Clear();
+                    recordCount = 0;
+                }
+            }
+
+            if (recordCount > 0)
+            {
+                await bulkCopy.WriteToServerAsync(batchDataTable);
             }
         }
 
