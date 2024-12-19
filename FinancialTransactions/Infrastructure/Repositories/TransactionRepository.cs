@@ -53,6 +53,7 @@ namespace FinancialTransactions.Infrastructure.Repositories
         private async static Task InsertData(IEnumerable<Transaction> transactions, string tableName, SqlBulkCopy bulkCopy)
         {
             bulkCopy.DestinationTableName = tableName;
+            bulkCopy.BulkCopyTimeout = 240;
 
             DataTable transactionsDataTable = GetDataTable(transactions);
 

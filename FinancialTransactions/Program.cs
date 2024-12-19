@@ -14,9 +14,11 @@ var analysisService = serviceProvider.GetRequiredService<IAnalysisService>();
 
 // Load transactions from CSV file
 var transactions = await CsvHelper.LoadTransactionsFromCsv("your_path_to_transactions_2_million.csv");
+Console.WriteLine("CSV data read");
 
 // Save transactions to database
 await transactionService.SaveTransactions(transactions);
+Console.WriteLine("\nTransactions saved in the Database");
 
 // Perform analysis
 var userSummariesTask = Task.Run(() => analysisService.GetUserSummaries(transactions));
@@ -41,5 +43,4 @@ var jsonReport = JsonConvert.SerializeObject(report, Formatting.Indented);
 // Save JSON report to file
 File.WriteAllText("E:/report.json", jsonReport);
 
-Console.WriteLine("Report generated successfully!");
-
+Console.WriteLine("\nReport generated successfully!");
