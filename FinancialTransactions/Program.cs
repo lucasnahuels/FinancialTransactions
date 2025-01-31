@@ -24,6 +24,7 @@ await transactionService.SaveTransactions(transactions);
 Console.WriteLine("\nTransactions saved in the Database");
 
 // Perform analysis
+//change this code to perform this calculations in database instead of doing it in memory  
 var userSummariesTask = Task.Run(() => analysisService.GetUserSummaries(transactions));
 var topCategoriesTask = Task.Run(() => analysisService.GetTopCategories(transactions));
 var highestSpenderTask = Task.Run(() => analysisService.GetHighestSpender(transactions));
